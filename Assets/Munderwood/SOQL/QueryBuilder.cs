@@ -1,46 +1,54 @@
+
+using System.Collections.Generic;
 using Munderwood.SOQL.Instructions;
+using Munderwood.SOQL.Operators;
+using UnityEngine;
+using AndConditionalOperator = Munderwood.SOQL.Operators.AndConditionalOperator;
 
 namespace Munderwood.SOQL
 {
     public class QueryBuilder
     {
-        protected QueryResult _queryResult = new QueryResult();
-        protected QueryProcessor _queryProcessor = new QueryProcessor();
+        //TODO need to turn registry into factory
+        protected QueryProcessor _queryProcessor = new QueryProcessor(new ScriptableObjectsRegistry());
 
         public QueryBuilder Select (string value)
         {
             string[] fields = value.Split(',');
             foreach (string field in fields)
             {
-                _queryProcessor.AddSelectInstruction(new SelectInstruction(field));
+                SelectInstruction selectInstruction = new SelectInstruction {Field = field};
+                _queryProcessor.AddSelectInstruction(selectInstruction);
             }
             return this;
         }
 
         public QueryBuilder From (string value)
         {
-            _queryProcessor.AddFromInstruction(new FromInstruction(value));
+            FromInstruction fromInstruction = new FromInstruction {ScriptableObject = value};
+            _queryProcessor.AddFromInstruction(fromInstruction);
             return this;
         }
 
-        public QueryBuilder Where (string value)
+        public QueryBuilder Where (string field,string operand,string value)
         {
+            _queryProcessor.AddWhereInstruction(new WhereInstruction(field,operand,value));
+            _queryProcessor.AddConditionalOperator(new AndConditionalOperator());
             return this;
         }
 
-        public QueryBuilder OrWhere ()
+        public QueryBuilder OrWhere (string field,string operand,string value)
         {
+            _queryProcessor.AddWhereInstruction(new WhereInstruction(field,operand,value));
+            _queryProcessor.AddConditionalOperator(new OrConditionalOperator());
             return this;
         }
 
-        public QueryResult Fetch()
+        public List<object> Fetch()
         {
-            return _queryResult;
-        }
-
-        protected string Split (string values)
-        {
+            List<object> results = _queryProcessor.ProcessInstructions();
             
+            return results;
         }
     }
 }
