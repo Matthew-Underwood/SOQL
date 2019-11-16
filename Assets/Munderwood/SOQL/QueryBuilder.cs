@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using Munderwood.SOQL.Instructions;
 using Munderwood.SOQL.Operators;
-using UnityEngine;
 using AndConditionalOperator = Munderwood.SOQL.Operators.AndConditionalOperator;
 
 namespace Munderwood.SOQL
 {
     public class QueryBuilder
     {
-        //TODO need to turn registry into factory
-        protected QueryProcessor _queryProcessor = new QueryProcessor(new ScriptableObjectsRegistry());
+        protected QueryProcessor _queryProcessor;
+        protected bool startWhereExpression = true;
+
+        public QueryBuilder(QueryProcessor queryProcessor)
+        {
+            this._queryProcessor = queryProcessor;
+        }
 
         public QueryBuilder Select (string value)
         {
@@ -33,7 +37,30 @@ namespace Munderwood.SOQL
         public QueryBuilder Where (string field,string operand,string value)
         {
             _queryProcessor.AddWhereInstruction(new WhereInstruction(field,operand,value));
-            _queryProcessor.AddConditionalOperator(new AndConditionalOperator());
+            if (!this.startWhereExpression)
+            {
+                _queryProcessor.AddConditionalOperator(new AndConditionalOperator());    
+            }
+
+            if (this.startWhereExpression)
+            {
+                this.startWhereExpression = false;
+            }
+            return this;
+        }
+        
+        public QueryBuilder Where (string field,string operand,int value)
+        {
+            _queryProcessor.AddWhereInstruction(new WhereInstruction(field,operand,value));
+            if (!this.startWhereExpression)
+            {
+                _queryProcessor.AddConditionalOperator(new AndConditionalOperator());    
+            }
+
+            if (this.startWhereExpression)
+            {
+                this.startWhereExpression = false;
+            }
             return this;
         }
 
@@ -43,10 +70,17 @@ namespace Munderwood.SOQL
             _queryProcessor.AddConditionalOperator(new OrConditionalOperator());
             return this;
         }
-
-        public List<object> Fetch()
+        
+        public QueryBuilder OrWhere (string field,string operand,int value)
         {
-            List<object> results = _queryProcessor.ProcessInstructions();
+            _queryProcessor.AddWhereInstruction(new WhereInstruction(field,operand,value));
+            _queryProcessor.AddConditionalOperator(new OrConditionalOperator());
+            return this;
+        }
+
+        public List<Dictionary<string,object>> Fetch()
+        {
+            List<Dictionary<string,object>> results = _queryProcessor.ProcessInstructions();
             
             return results;
         }

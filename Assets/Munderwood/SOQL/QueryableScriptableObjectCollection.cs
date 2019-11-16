@@ -10,13 +10,14 @@ namespace Munderwood.SOQL
 
         public QueryableScriptableObjectCollection(List<ScriptableObject> scriptableObjects)
         {
-            this.scriptableObjects = scriptableObjects;
             this.FilterableScriptableObjects = scriptableObjects;
+            this.scriptableObjects = new List<ScriptableObject>(scriptableObjects);
         }
 
         public void Reset()
         {
             this.FilterableScriptableObjects = scriptableObjects;
+            this.scriptableObjects = new List<ScriptableObject>(scriptableObjects);
         }
     }
 }

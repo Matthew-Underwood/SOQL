@@ -4,7 +4,9 @@ namespace Munderwood.SOQL.Comparisons
     {
         public bool Compare(object valueA, object valueB)
         {
-            return (int)valueA < (int)valueB;
+            int valA = (int) valueA;
+            int valB = (int) valueB;
+            return valA < valB;
         }
     }
 }
